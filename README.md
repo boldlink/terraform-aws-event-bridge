@@ -6,11 +6,19 @@
 
 [<img src="https://avatars.githubusercontent.com/u/25388280?s=200&v=4" width="96"/>](https://boldlink.io)
 
-# Aws Event Bridge Terraform Module
+# AWS Event Bridge Terraform Module
 
 ## Description
 
-This module creates aws cloudwatch event bridge, event target, event permissions and resources necessary to create and use the aforementioned resources
+This module creates aws cloudwatch event rule, event target, event permissions and resources necessary to create and use the aforementioned resources
+
+### Features covered in this module
+- AWS Cloudwatch Event Rule
+- AWS Cloudwatch Event Target
+- AWS Cloudwatch Event Permission which creates an EventBridge permission to support cross-account events in the current account default event bus.
+
+### Why Use this Module
+- This module as well as other Boldlink modules are created following AWS best practices as highlighted by checkov scans on the modules. This ensures that resources are deployed in a secure manner and environment. 
 
 Examples available [`here`](./examples)
 
