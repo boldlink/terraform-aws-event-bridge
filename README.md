@@ -18,7 +18,7 @@ This module creates aws cloudwatch event rule, event target, event permissions a
 - AWS Cloudwatch Event Permission which creates an EventBridge permission to support cross-account events in the current account default event bus.
 
 ### Why Use this Module
-- This module as well as other Boldlink modules are created following AWS best practices as highlighted by checkov scans on the modules. This ensures that resources are deployed in a secure manner and environment. 
+- This module as well as other Boldlink modules are created following AWS best practices as highlighted by checkov scans on the modules. This ensures that resources are deployed in a secure manner and environment.
 
 Examples available [`here`](./examples)
 
