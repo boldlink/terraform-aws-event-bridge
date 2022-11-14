@@ -10,12 +10,12 @@
 
 ## Description
 
-This module creates aws cloudwatch event rule, event target, event permissions and resources necessary to create and use the aforementioned resources
+Boldlink AWS Event Bridge module has been scanned with Checkov to ensure its resources and default configurations are provided to you following known standards and best practices.
 
-### Features covered in this module
-- AWS Cloudwatch Event Rule
-- AWS Cloudwatch Event Target
-- AWS Cloudwatch Event Permission which creates an EventBridge permission to support cross-account events in the current account default event bus.
+### Why choose this module over the standard resouces
+- AWS Cloudwatch Event Rule included as a default
+- AWS Cloudwatch Event Target is also created by the module
+- Optional creation of AWS Cloudwatch Event Permissions which creates an EventBridge permission to support cross-account events in the current account default event bus.
 
 ### Why Use this Module
 - This module as well as other Boldlink modules are created following AWS best practices as highlighted by checkov scans on the modules. This ensures that resources are deployed in a secure manner and environment.
