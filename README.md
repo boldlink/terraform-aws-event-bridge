@@ -17,9 +17,6 @@ Boldlink AWS Event Bridge module has been scanned with Checkov to ensure its res
 - AWS Cloudwatch Event Target is also created by the module
 - Optional creation of AWS Cloudwatch Event Permissions which creates an EventBridge permission to support cross-account events in the current account default event bus.
 
-### Why Use this Module
-- This module as well as other Boldlink modules are created following AWS best practices as highlighted by checkov scans on the modules. This ensures that resources are deployed in a secure manner and environment.
-
 Examples available [`here`](./examples)
 
 ## Usage
