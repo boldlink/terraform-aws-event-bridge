@@ -1,3 +1,6 @@
+[![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/boldlink/terraform-aws-event-bridge/blob/main/LICENSE)
+[![Latest Release](https://img.shields.io/github/release/boldlink/terraform-aws-event-bridge.svg)](https://github.com/boldlink/terraform-aws-event-bridge/releases/latest)
+[![Build Status](https://github.com/boldlink/terraform-aws-event-bridge/actions/workflows/update.yaml/badge.svg)](https://github.com/boldlink/terraform-aws-event-bridge/actions)
 [![Build Status](https://github.com/boldlink/terraform-aws-event-bridge/actions/workflows/release.yaml/badge.svg)](https://github.com/boldlink/terraform-aws-event-bridge/actions)
 [![Build Status](https://github.com/boldlink/terraform-aws-event-bridge/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/boldlink/terraform-aws-event-bridge/actions)
 [![Build Status](https://github.com/boldlink/terraform-aws-event-bridge/actions/workflows/pr-labeler.yaml/badge.svg)](https://github.com/boldlink/terraform-aws-event-bridge/actions)
