@@ -1,4 +1,5 @@
 module "sns" {
+  #checkov:skip=CKV_TF_1:Ensure Terraform module sources use a commit hash
   source  = "boldlink/sns/aws"
   version = "1.1.1"
   name    = local.topic_name

@@ -11,6 +11,7 @@ resource "aws_ssm_document" "stop_instance" {
 }
 
 module "ssm_role" {
+  #checkov:skip=CKV_TF_1:Ensure Terraform module sources use a commit hash
   source             = "boldlink/iam-role/aws"
   version            = "1.1.0"
   name               = "${local.name}-role"

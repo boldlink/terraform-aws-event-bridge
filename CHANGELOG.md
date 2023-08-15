@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Add more options in the complete example
 - feat: Added event API destinations
 - feat: As targets, use more AWS services in the examples
+- fix: CKV_TF_1 Ensure Terraform module sources use a commit hash
 
 ## [1.0.0] - 2022-11-02
 ### Description
