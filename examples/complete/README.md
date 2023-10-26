@@ -26,13 +26,14 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.12.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 5.22.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_complete_event_bridge_example"></a> [complete\_event\_bridge\_example](#module\_complete\_event\_bridge\_example) | ../.. | n/a |
+| <a name="module_extended_event_bridge_example"></a> [extended\_event\_bridge\_example](#module\_extended\_event\_bridge\_example) | ../.. | n/a |
 | <a name="module_ssm_role"></a> [ssm\_role](#module\_ssm\_role) | boldlink/iam-role/aws | 1.1.0 |
 
 ## Resources

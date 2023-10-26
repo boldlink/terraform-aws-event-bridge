@@ -89,37 +89,37 @@ variable "run_command_targets" {
 }
 
 variable "ecs_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke Amazon ECS Task."
   default     = {}
 }
 
 variable "batch_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job."
   default     = {}
 }
 
 variable "kinesis_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream."
   default     = {}
 }
 
 variable "redshift_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke an Amazon Redshift Statement."
   default     = {}
 }
 
 variable "sqs_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke an Amazon SQS Queue."
   default     = {}
 }
 
 variable "http_target" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are using the rule to invoke an API Gateway REST endpoint."
   default     = {}
 }

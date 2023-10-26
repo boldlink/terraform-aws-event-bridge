@@ -11,7 +11,6 @@ resource "aws_ssm_document" "stop_instance" {
 }
 
 module "ssm_role" {
-  #checkov:skip=CKV_TF_1:Ensure Terraform module sources use a commit hash
   source             = "boldlink/iam-role/aws"
   version            = "1.1.0"
   name               = "${local.name}-role"
@@ -39,6 +38,102 @@ module "complete_event_bridge_example" {
     {
       key    = "tag:Stop"
       values = ["true"]
+    }
+  ]
+}
+
+###
+module "extended_event_bridge_example" {
+  source              = "../.."
+  name                = local.name
+  description         = "Extended Event bridge rule example"
+  schedule_expression = "cron(0 19 * * ? *)"
+  target_id           = "ExtendedTargets"
+  arn                 = aws_ssm_document.stop_instance.arn
+  target_role_arn     = module.ssm_role.arn
+  tags                = local.tags
+
+  # Run Command Targets
+  run_command_targets = [
+    {
+      key    = "tag:Stop"
+      values = ["true"]
+    }
+  ]
+
+  # HTTP Target
+  http_target = [
+    {
+      path_parameter_values = ["value1", "value2"],
+      query_string_parameters = {
+        "param1" = "value1",
+        "param2" = "value2"
+      },
+      header_parameters = {
+        "header1" = "value1",
+        "header2" = "value2"
+      }
+    }
+  ]
+
+  # SQS Target
+  sqs_target = [
+    {
+      message_group_id = "example-group-id"
+    }
+  ]
+
+  # Batch Target
+  batch_target = [
+    {
+      job_definition = "example-job-definition",
+      job_name       = "example-job-name",
+      array_size     = 5,
+      job_attempts   = 3
+    }
+  ]
+
+  # Kinesis Target
+  kinesis_target = [
+    {
+      partition_key_path = "example-path"
+    }
+  ]
+
+  # ECS Target with all its options including network_configuration
+  ecs_target = [
+    {
+      capacity_provider_strategy = [
+        {
+          base              = 1,
+          capacity_provider = "example-provider",
+          weight            = 1
+        }
+      ],
+      network_configuration = [
+        {
+          subnets          = ["subnet-0123456789abcdef0"],
+          security_groups  = ["sg-0123456789abcdef0"],
+          assign_public_ip = true
+        }
+      ],
+      placement_constraint = [
+        {
+          type       = "distinctInstance",
+          expression = "attribute:ecs.instance-type == t2.micro"
+        }
+      ],
+      group               = "example-group",
+      launch_type         = "EC2",
+      platform_version    = "LATEST",
+      task_count          = 1,
+      task_definition_arn = "arn:aws:ecs:region:account-id:task-definition/task-name:task-version",
+      tags = {
+        "Name" = "example"
+      },
+      propagate_tags          = "TASK_DEFINITION",
+      enable_execute_command  = true,
+      enable_ecs_managed_tags = true
     }
   ]
 }
