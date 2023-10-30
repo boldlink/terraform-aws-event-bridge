@@ -77,9 +77,9 @@ module "ecs_service" {
   task_execution_role_policy        = local.task_execution_role_policy_doc
   container_definitions             = local.default_container_definitions
   #kms_key_id                        = module.kms_key.arn
-  tags                              = local.tags
-  service_ingress_rules             = var.service_ingress_rules
-  depends_on                        = [module.kms_key]
+  tags                  = local.tags
+  service_ingress_rules = var.service_ingress_rules
+  depends_on            = [module.kms_key]
 
   network_configuration = {
     subnets = flatten(module.ecs_vpc.private_subnet_ids)

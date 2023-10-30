@@ -109,12 +109,6 @@ variable "logging_type" {
   default     = "OVERRIDE"
 }
 
-variable "supporting_resources_name" {
-  type        = string
-  description = "Name of the supporting resources stack"
-  default     = "terraform-aws-ecs-service"
-}
-
 variable "image" {
   type        = string
   description = "Name of image to pull from dockerhub"

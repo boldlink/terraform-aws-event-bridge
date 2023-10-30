@@ -43,22 +43,6 @@ locals {
 
 locals {
   task_definition_arn = module.ecs_service.task_definition_arn[0][0]
-  content = jsonencode({
-    "schemaVersion" : "1.2",
-    "description" : "Stop an instances at 1900Hrs in the evening everyday",
-    "parameters" : {},
-    "runtimeConfig" : {
-      "aws:runShellScript" : {
-        "properties" : [
-          {
-            "id" : "0.aws:runShellScript",
-            "runCommand" : ["halt"]
-          }
-        ]
-      }
-    }
-  })
-
   default_container_definitions = jsonencode(
     [
       {
