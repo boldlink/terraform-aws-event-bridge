@@ -36,7 +36,7 @@ resource "aws_cloudwatch_event_target" "main" {
         content {
           base              = try(capacity_provider_strategy.value.base, null)
           capacity_provider = capacity_provider_strategy.value.capacity_provider
-          weight            = capacity_provider_strategy.value.weight
+          weight            = try(capacity_provider_strategy.value.weight, null)
         }
       }
 
@@ -61,7 +61,7 @@ resource "aws_cloudwatch_event_target" "main" {
       launch_type             = try(ecs_target.value.launch_type, null)
       platform_version        = try(ecs_target.value.platform_version, null)
       task_count              = try(ecs_target.value.task_count, null)
-      task_definition_arn     = ecs_target.value.task_definition_arn
+      task_definition_arn     = try(ecs_target.value.task_definition_arn, null)
       tags                    = try(ecs_target.value.tags, null)
       propagate_tags          = try(ecs_target.value.propagate_tags, null)
       enable_execute_command  = try(ecs_target.value.enable_execute_command, null)
@@ -117,8 +117,8 @@ resource "aws_cloudwatch_event_target" "main" {
   dynamic "input_transformer" {
     for_each = var.input_transformer
     content {
-      input_paths    = try(input_transformer.value.input_paths, null)
-      input_template = input_transformer.value.input_template
+      input_paths    = input_transformer.value.input_paths
+      input_template = try(input_transformer.value.input_template, null)
     }
   }
 

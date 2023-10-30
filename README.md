@@ -18,14 +18,15 @@
 Boldlink AWS Event Bridge module has been scanned with Checkov to ensure its resources and default configurations are provided to you following known standards and best practices.
 
 ### Why choose this module over the standard resouces
-- AWS Cloudwatch Event Rule included as a default
-- AWS Cloudwatch Event Target is also created by the module
 - Optional creation of AWS Cloudwatch Event Permissions which creates an EventBridge permission to support cross-account events in the current account default event bus.
+- **Flexibility:** The module is designed to be flexible, allowing users to specify various targets such as Redshift, SQS, Batch, and more. This means you can adapt the module to various use cases and requirements.
+- **Rapid Deployment:** Setting up EventBridge configurations manually can be time-consuming. This module allows for rapid deployment of rules, targets, and permissions with minimal effort.
+- **Enhanced Error Handling:** With built-in configurations for retry policies and dead-letter queues, the module ensures that failed events are captured and can be processed later, reducing the chances of data loss.
 
 Examples available [`here`](./examples)
 
 ## Usage
-*NOTE*: These examples use the latest version of this module
+**NOTE**: These examples use the latest version of this module
 
 ```hcl
 module "sns" {
@@ -37,7 +38,8 @@ module "sns" {
 }
 
 module "minumum_example" {
-  source        = "../.."
+  source        = "boldlink/event-bridge/aws"
+  version       = "<provide_latest_version_here>"
   name          = local.name
   event_pattern = local.event_pattern
   description   = "Capture each AWS Console Sign In"
@@ -84,7 +86,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_arn"></a> [arn](#input\_arn) | (Required) The Amazon Resource Name (ARN) of the target. | `string` | n/a | yes |
 | <a name="input_batch_target"></a> [batch\_target](#input\_batch\_target) | (Optional) Parameters used when you are using the rule to invoke an Amazon Batch Job. | `any` | `{}` | no |
-| <a name="input_dead_letter_config"></a> [dead\_letter\_config](#input\_dead\_letter\_config) | (Optional) Parameters used when you are providing a dead letter config. | `map(string)` | `{}` | no |
+| <a name="input_dead_letter_config"></a> [dead\_letter\_config](#input\_dead\_letter\_config) | (Optional) Parameters used when you are providing a dead letter config. | `any` | `{}` | no |
 | <a name="input_description"></a> [description](#input\_description) | (Optional) The description of the rule. | `string` | `null` | no |
 | <a name="input_ecs_target"></a> [ecs\_target](#input\_ecs\_target) | (Optional) Parameters used when you are using the rule to invoke Amazon ECS Task. | `any` | `{}` | no |
 | <a name="input_event_bus_name"></a> [event\_bus\_name](#input\_event\_bus\_name) | (Optional) The event bus to associate with this rule. If you omit this, the `default` event bus is used. | `string` | `"default"` | no |
@@ -93,13 +95,13 @@ No modules.
 | <a name="input_http_target"></a> [http\_target](#input\_http\_target) | (Optional) Parameters used when you are using the rule to invoke an API Gateway REST endpoint. | `any` | `{}` | no |
 | <a name="input_input"></a> [input](#input\_input) | (Optional) Valid JSON text passed to the target. Conflicts with `input_path` and `input_transformer`. | `string` | `null` | no |
 | <a name="input_input_path"></a> [input\_path](#input\_input\_path) | (Optional) The value of the JSONPath that is used for extracting part of the matched event when passing it to the target. Conflicts with `input` and `input_transformer`. | `string` | `null` | no |
-| <a name="input_input_transformer"></a> [input\_transformer](#input\_input\_transformer) | (Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`. | `map(string)` | `{}` | no |
+| <a name="input_input_transformer"></a> [input\_transformer](#input\_input\_transformer) | (Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`. | `any` | `[]` | no |
 | <a name="input_is_enabled"></a> [is\_enabled](#input\_is\_enabled) | (Optional) Whether the rule should be enabled (defaults to `true`). | `bool` | `true` | no |
 | <a name="input_kinesis_target"></a> [kinesis\_target](#input\_kinesis\_target) | (Optional) Parameters used when you are using the rule to invoke an Amazon Kinesis Stream. | `any` | `{}` | no |
 | <a name="input_name"></a> [name](#input\_name) | (Optional) The name of the rule. If omitted, Terraform will assign a random, unique name. Conflicts with `name_prefix`. | `string` | `null` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | (Optional) Creates a unique name beginning with the specified prefix. Conflicts with `name`. | `string` | `null` | no |
 | <a name="input_redshift_target"></a> [redshift\_target](#input\_redshift\_target) | (Optional) Parameters used when you are using the rule to invoke an Amazon Redshift Statement. | `any` | `{}` | no |
-| <a name="input_retry_policy"></a> [retry\_policy](#input\_retry\_policy) | (Optional) Parameters used when you are providing retry policies. | `map(string)` | `{}` | no |
+| <a name="input_retry_policy"></a> [retry\_policy](#input\_retry\_policy) | (Optional) Parameters used when you are providing retry policies. | `any` | `{}` | no |
 | <a name="input_role_arn"></a> [role\_arn](#input\_role\_arn) | (Optional) The Amazon Resource Name (ARN) associated with the role that is used for target invocation. | `string` | `null` | no |
 | <a name="input_run_command_targets"></a> [run\_command\_targets](#input\_run\_command\_targets) | (Optional) List of Parameters used when you are using the rule to invoke Amazon EC2 Run Command. | `list(any)` | `[]` | no |
 | <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | (Optional) The scheduling expression. For example, `cron(0 20 * * ? *)` or `rate(5 minutes)`. At least one of `schedule_expression` or `event_pattern` is required. Can only be used on the default event bus. | `string` | `null` | no |

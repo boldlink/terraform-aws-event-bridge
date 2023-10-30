@@ -34,106 +34,335 @@ module "complete_event_bridge_example" {
   arn                 = aws_ssm_document.stop_instance.arn
   target_role_arn     = module.ssm_role.arn
   tags                = local.tags
+
   run_command_targets = [
     {
       key    = "tag:Stop"
       values = ["true"]
+    }
+  ]
+
+  retry_policy = [
+    {
+      maximum_event_age_in_seconds = 3600
+      maximum_retry_attempts       = 3
     }
   ]
 }
 
-###
-module "extended_event_bridge_example" {
+resource "aws_iam_role" "ecs_events" {
+  name               = "ecs_events"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+resource "aws_iam_role_policy" "ecs_events_run_task_with_any_role" {
+  name   = "ecs_events_run_task_with_any_role"
+  role   = aws_iam_role.ecs_events.id
+  policy = data.aws_iam_policy_document.ecs_events_run_task_with_any_role.json
+}
+
+module "ecs_target" {
   source              = "../.."
-  name                = local.name
+  name                = "${local.name}-ecs"
   description         = "Extended Event bridge rule example"
   schedule_expression = "cron(0 19 * * ? *)"
-  target_id           = "ExtendedTargets"
-  arn                 = aws_ssm_document.stop_instance.arn
-  target_role_arn     = module.ssm_role.arn
+  target_id           = "ECSTarget"
+  arn                 = local.cluster_arn
+  target_role_arn     = aws_iam_role.ecs_events.arn
   tags                = local.tags
 
-  # Run Command Targets
-  run_command_targets = [
+  input = jsonencode({
+    containerOverrides = [
+      {
+        name = var.supporting_resources_name,
+        command = [
+          "bin/console",
+          "scheduled-task"
+        ]
+      }
+    ]
+  })
+
+  # ECS Target with all its options including network_configuration
+  ecs_target = [
     {
-      key    = "tag:Stop"
-      values = ["true"]
+      capacity_provider_strategy = {
+        base              = 1
+        capacity_provider = "example-provider"
+        weight            = 1
+      }
+
+      # Parameter AssignPublicIp for target ECSTarget is not supported when launch type is EC2
+      network_configuration = {
+        subnets         = flatten(local.private_subnets)
+        security_groups = [local.security_group]
+      }
+
+      placement_constraint = {
+        type       = "distinctInstance"
+        expression = "attribute:ecs.instance-type == t2.micro"
+      }
+
+      # Parameter PlatformVersion for target ECSTarget is not supported when launch type is EC2
+      group               = "example-group"
+      launch_type         = "EC2"
+      task_count          = 1
+      task_definition_arn = local.task_definition_arn
+
+      tags = {
+        "Name" = "example"
+      }
+
+      propagate_tags          = "TASK_DEFINITION"
+      enable_execute_command  = true
+      enable_ecs_managed_tags = true
     }
   ]
+}
 
-  # HTTP Target
+###http target
+resource "aws_iam_role" "api_gw_cloudwatch" {
+  name               = "APIGatewayCloudWatchRole"
+  assume_role_policy = local.api_assume_role_policy
+}
+
+resource "aws_iam_role_policy" "api_gw_cloudwatch" {
+  #checkov:skip=CKV_AWS_290: "Ensure IAM policies does not allow write access without constraints"
+  #checkov:skip=CKV_AWS_355
+  name   = "APIGatewayCloudWatchPolicy"
+  role   = aws_iam_role.api_gw_cloudwatch.id
+  policy = local.api_gw_cloudwatch_policy
+
+}
+
+resource "aws_api_gateway_account" "main" {
+  cloudwatch_role_arn = aws_iam_role.api_gw_cloudwatch.arn
+  depends_on          = [aws_iam_role_policy.api_gw_cloudwatch]
+}
+
+resource "aws_api_gateway_rest_api" "main" {
+  body = jsonencode({
+    openapi = "3.0.1"
+    info = {
+      title   = "example"
+      version = "1.0"
+    }
+    paths = {
+      "/path1" = {
+        get = {
+          x-amazon-apigateway-integration = {
+            httpMethod           = "GET"
+            payloadFormatVersion = "1.0"
+            type                 = "HTTP_PROXY"
+            uri                  = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+          }
+        }
+      }
+    }
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+  name = "example"
+}
+
+resource "aws_api_gateway_deployment" "main" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.main.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "main" {
+  #checkov:skip=CKV_AWS_120: "Ensure API Gateway caching is enabled"
+  #checkov:skip=CKV_AWS_76: "Ensure API Gateway has Access Logging enabled"
+  #checkov:skip=CKV_AWS_73: "Ensure API Gateway has X-Ray Tracing enabled"
+  #checkov:skip=CKV2_AWS_51: "Ensure AWS API Gateway endpoints uses client certificate authentication"
+  #checkov:skip=CKV2_AWS_29: "Ensure public API gateway are protected by WAF"
+  deployment_id = aws_api_gateway_deployment.main.id
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  stage_name    = "example"
+}
+
+resource "aws_api_gateway_method_settings" "main" {
+  #checkov:skip=CKV_AWS_225: "Ensure API Gateway method setting caching is enabled"
+  #checkov:skip=CKV_AWS_308: "Ensure API Gateway method setting caching is set to encrypted"
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  stage_name  = aws_api_gateway_stage.main.stage_name
+  method_path = "*/*"
+  depends_on  = [aws_api_gateway_account.main]
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "INFO"
+  }
+}
+
+module "http_target" {
+  source      = "../.."
+  name        = "capture-ec2-scaling-events"
+  description = "Capture all EC2 scaling events"
+  target_id   = "CaptureInstancesEvents"
+  arn         = "${aws_api_gateway_stage.main.execution_arn}/GET"
+  tags        = local.tags
+
+  event_pattern = jsonencode({
+    source = [
+      "aws.autoscaling"
+    ]
+
+    detail-type = [
+      "EC2 Instance Launch Successful",
+      "EC2 Instance Terminate Successful",
+      "EC2 Instance Launch Unsuccessful",
+      "EC2 Instance Terminate Unsuccessful"
+    ]
+  })
+
   http_target = [
     {
-      path_parameter_values = ["value1", "value2"],
       query_string_parameters = {
-        "param1" = "value1",
+        "param1" = "value1"
         "param2" = "value2"
-      },
+      }
       header_parameters = {
-        "header1" = "value1",
+        "header1" = "value1"
         "header2" = "value2"
       }
     }
   ]
 
-  # SQS Target
-  sqs_target = [
+  input_transformer = [
     {
-      message_group_id = "example-group-id"
+      input_paths = {
+        instance = "$.detail.instance",
+        status   = "$.detail.status",
+      }
+      input_template = <<EOF
+{
+  "instance_id": <instance>,
+  "instance_status": <status>
+}
+EOF
     }
   ]
 
-  # Batch Target
-  batch_target = [
+  event_permissions = [
     {
-      job_definition = "example-job-definition",
-      job_name       = "example-job-name",
-      array_size     = 5,
-      job_attempts   = 3
+      principal    = "*"
+      statement_id = "OrganizationAccess"
+      action       = "events:PutEvents"
+      condition = {
+        key   = "aws:PrincipalOrgID"
+        type  = "StringEquals"
+        value = local.organization_id
+      }
     }
   ]
+}
 
-  # Kinesis Target
-  kinesis_target = [
-    {
-      partition_key_path = "example-path"
-    }
+## Other targets
+resource "aws_redshift_cluster" "example" {
+  #checkov:skip=CKV_AWS_64: "Ensure all data stored in the Redshift cluster is securely encrypted at rest"
+  #checkov:skip=CKV_AWS_142: "Ensure that Redshift cluster is encrypted by KMS"
+  #checkov:skip=CKV_AWS_321: "Ensure Redshift clusters use enhanced VPC routing"
+  #checkov:skip=CKV_AWS_188: "Ensure RedShift Cluster is encrypted by KMS using a customer managed Key (CMK)"
+  #checkov:skip=CKV_AWS_71: "Ensure Redshift Cluster logging is enabled"
+  #checkov:skip=CKV_AWS_87: "Redshift cluster should not be publicly accessible"
+  #checkov:skip=CKV_SECRET_6: "Base64 High Entropy String"
+  cluster_identifier        = "${var.name}-redshift-cluster"
+  database_name             = "example_database"
+  master_username           = "exampleuser"
+  master_password           = var.master_password
+  node_type                 = "dc2.large"
+  cluster_type              = "single-node"
+  skip_final_snapshot       = true
+  vpc_security_group_ids    = [aws_security_group.rs.id]
+  cluster_subnet_group_name = aws_redshift_subnet_group.example.name
+  port                      = 5439
+
+  depends_on = [
+    aws_redshift_subnet_group.example,
+    aws_security_group.rs
   ]
+}
 
-  # ECS Target with all its options including network_configuration
-  ecs_target = [
+resource "aws_redshift_subnet_group" "example" {
+  name       = var.name
+  subnet_ids = flatten(local.private_subnets)
+  tags       = var.tags
+}
+
+resource "aws_security_group" "rs" {
+  name        = "${var.name}-rs-sg"
+  description = "Example rs Security Group"
+  vpc_id      = local.vpc_id
+}
+
+module "secrets" {
+  source        = "boldlink/secretsmanager/aws"
+  version       = "1.0.8"
+  name          = var.name
+  description   = "RS secrets"
+  secret_policy = local.secrets_policy
+  tags          = var.tags
+
+  secrets = {
+    creds = {
+      secret_string = jsonencode(
+        {
+          username = "exampleuser"
+          password = var.master_password
+        }
+      )
+    }
+  }
+}
+
+resource "aws_iam_role" "others" {
+  name               = "${var.name}-others"
+  assume_role_policy = data.aws_iam_policy_document.assume_others.json
+}
+
+resource "aws_iam_role_policy_attachment" "redshift_s3_read_write" {
+  role       = aws_iam_role.others.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "batch_service" {
+  role       = aws_iam_role.others.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
+resource "aws_iam_role_policy_attachment" "sqs_full_access" {
+  role       = aws_iam_role.others.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+}
+
+module "redshift_target" {
+  source              = "../../"
+  name                = "${var.name}-rs-target"
+  description         = "RS bridge rule example"
+  schedule_expression = "cron(0 19 * * ? *)"
+  target_id           = "RSTarget"
+  arn                 = aws_redshift_cluster.example.arn
+  target_role_arn     = aws_iam_role.others.arn
+  tags                = var.tags
+
+  redshift_target = [
     {
-      capacity_provider_strategy = [
-        {
-          base              = 1,
-          capacity_provider = "example-provider",
-          weight            = 1
-        }
-      ],
-      network_configuration = [
-        {
-          subnets          = ["subnet-0123456789abcdef0"],
-          security_groups  = ["sg-0123456789abcdef0"],
-          assign_public_ip = true
-        }
-      ],
-      placement_constraint = [
-        {
-          type       = "distinctInstance",
-          expression = "attribute:ecs.instance-type == t2.micro"
-        }
-      ],
-      group               = "example-group",
-      launch_type         = "EC2",
-      platform_version    = "LATEST",
-      task_count          = 1,
-      task_definition_arn = "arn:aws:ecs:region:account-id:task-definition/task-name:task-version",
-      tags = {
-        "Name" = "example"
-      },
-      propagate_tags          = "TASK_DEFINITION",
-      enable_execute_command  = true,
-      enable_ecs_managed_tags = true
+      database = "example_database"
+      #db_user             = "exampleuser" #either use db_user or secrets_manager_arn but not both
+      secrets_manager_arn = module.secrets.arn
+      sql                 = "SELECT * FROM example_table"
+      statement_name      = "example_statement"
+      with_event          = true
     }
   ]
 }

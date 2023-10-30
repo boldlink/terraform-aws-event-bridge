@@ -125,19 +125,19 @@ variable "http_target" {
 }
 
 variable "input_transformer" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are providing a custom input to a target based on certain event data. Conflicts with `input` and `input_path`."
-  default     = {}
+  default     = []
 }
 
 variable "retry_policy" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are providing retry policies."
   default     = {}
 }
 
 variable "dead_letter_config" {
-  type        = map(string)
+  type        = any
   description = "(Optional) Parameters used when you are providing a dead letter config."
   default     = {}
 }
