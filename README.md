@@ -17,7 +17,7 @@
 
 Boldlink AWS Event Bridge module has been scanned with Checkov to ensure its resources and default configurations are provided to you following known standards and best practices.
 
-### Why choose this module over the standard resouces
+### Why choose this module over the standard resources
 - Optional creation of AWS Cloudwatch Event Permissions which creates an EventBridge permission to support cross-account events in the current account default event bus.
 - **Flexibility:** The module is designed to be flexible, allowing users to specify various targets such as Redshift, SQS, Batch, and more. This means you can adapt the module to various use cases and requirements.
 - **Rapid Deployment:** Setting up EventBridge configurations manually can be time-consuming. This module allows for rapid deployment of rules, targets, and permissions with minimal effort.
@@ -163,4 +163,4 @@ make cleanstatefiles
 ```
 
 
-#### BOLDLink-SIG 2022
+#### BOLDLink-SIG 2023
