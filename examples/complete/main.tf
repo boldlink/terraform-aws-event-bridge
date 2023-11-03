@@ -3,6 +3,18 @@
 ### Have connectivity with Systems Manager endpoints using the SSM Agent (hence should have internet connectivity or use vpc endpoint).
 ### Have the correct AWS Identity and Access Management (IAM) role attached. (ensure `AmazonSSMManagedInstanceCore` policy is attached)
 ### Have connectivity to the instance metadata service.
+resource "random_string" "user" {
+  length  = 5
+  special = false
+  upper   = false
+  numeric = false
+}
+
+resource "random_password" "master_password" {
+  length  = 16
+  special = false
+  upper   = true
+}
 
 resource "aws_ssm_document" "stop_instance" {
   name          = "stop_instance"
@@ -279,7 +291,7 @@ resource "aws_redshift_cluster" "example" {
   cluster_identifier        = "${var.name}-redshift-cluster"
   database_name             = "example_database"
   master_username           = "exampleuser"
-  master_password           = var.master_password
+  master_password           = random_password.master_password.result
   node_type                 = "dc2.large"
   cluster_type              = "single-node"
   skip_final_snapshot       = true
@@ -317,8 +329,8 @@ module "secrets" {
     creds = {
       secret_string = jsonencode(
         {
-          username = "exampleuser"
-          password = var.master_password
+          username = random_string.user.result
+          password = random_password.master_password.result
         }
       )
     }

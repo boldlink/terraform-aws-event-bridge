@@ -24,9 +24,3 @@ variable "tags" {
     LayerId            = "cExample"
   }
 }
-
-variable "master_password" {
-  description = "The master password for the resource"
-  type        = string
-  sensitive   = true
-}

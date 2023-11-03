@@ -21,6 +21,7 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.11 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.30.0 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.1.0 |
 
 ## Providers
 
@@ -60,6 +61,8 @@
 | [aws_redshift_subnet_group.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/redshift_subnet_group) | resource |
 | [aws_security_group.rs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_ssm_document.stop_instance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_document) | resource |
+| [random_password.master_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [random_string.user](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_ecs_cluster.ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ecs_cluster) | data source |
 | [aws_ecs_task_definition.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ecs_task_definition) | data source |
@@ -79,7 +82,6 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_master_password"></a> [master\_password](#input\_master\_password) | The master password for the resource | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Name of the stack | `string` | `"complete-event-bridge-example"` | no |
 | <a name="input_supporting_resources_name"></a> [supporting\_resources\_name](#input\_supporting\_resources\_name) | Name of the supporting resources stack | `string` | `"complete-event-bridge-example"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the resources | `map(string)` | <pre>{<br>  "Department": "DevOps",<br>  "Environment": "example",<br>  "InstanceScheduler": true,<br>  "LayerId": "cExample",<br>  "LayerName": "cExample",<br>  "Owner": "Boldlink",<br>  "Project": "Examples",<br>  "user::CostCenter": "terraform"<br>}</pre> | no |
